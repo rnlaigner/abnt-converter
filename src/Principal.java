@@ -16,7 +16,9 @@ public class Principal {
 		
 		Converter conv = new Converter();
 		
-		System.out.println(conv.convertABNTtoUS(fileContents));
+		String output = conv.convertABNTtoUS(fileContents);
+		
+		//System.out.println(output));
 	}
 
 }

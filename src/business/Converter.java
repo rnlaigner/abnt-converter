@@ -171,11 +171,13 @@ public class Converter {
 				{
 					issuer = "";
 				}
+				else if (parts[index+4].split(",")[1].substring(1).equals("p"))
+				{
+					issuer = " vol. " + parts[index+4].split(",")[0] + ", ";
+				}
 				else {
 					issuer = parts[index+4].split(",")[0] + ",";
 				}
-				
-				//issuer = getIssuer(parts[index+3] + ",");
 				
 				//quebra o 5 para pegar as paginas
 				String[] pageMonth = parts[index+5].split(",");
@@ -185,7 +187,7 @@ public class Converter {
 				// TODO convert brazilian month to US
 				String month = pageMonth[1];
 				
-				year = month + " " + parts[index+6] + ", pp." + page;	
+				year = month + " " + parts[index+6] + ", pp." + page + ".";	
 				
 			}
 			else if(parts.length == 6)
@@ -288,8 +290,47 @@ public class Converter {
 				
 				year = month + " " + parts[index+5] + ", pp." + page + ".";
 			}
-			//TODO tratar o volume
-			if(parts.length == 6)			
+			else if(parts.length == 7)			
+			{
+				if(oneAuthor)
+				{
+					author_ = processAuthor(parts[index] + ".");
+				}
+				else
+				{
+					author_ = " and " + processAuthor(parts[index] + ".");
+				}
+				
+				article = getArticleName(parts[index+1]);
+				
+				fora = getPublicationFora( parts[index+2] );
+				
+				issuer = parts[index+3].split(",")[0]; 
+				
+				if(Utils.isNumeric( issuer ))
+				{
+					issuer = " vol. " + parts[index+3].split(",")[0] + ", no. " + parts[index+4].split(",")[0] + ", "; 
+				}
+				else if ( issuer.substring(1).equals("p")  )
+				{
+					issuer = parts[index+3].split(",")[0] + ",";
+				}
+				else
+				{
+					issuer = issuer + ",";
+				}
+				
+				//quebra o 5 para pegar as paginas
+				String[] pageMonth = parts[index+5].split(",");
+				
+				String page = pageMonth[0];
+				
+				// TODO convert brazilian month to US
+				String month = pageMonth[1];
+				
+				year = month + " " + parts[index+6] + ", pp." + page + ".";
+			}
+			else if(parts.length == 6)			
 			{
 				if(oneAuthor)
 				{
@@ -309,6 +350,10 @@ public class Converter {
 				if(Utils.isNumeric( issuer ))
 				{
 					issuer = " vol. " + parts[index+3].split(",")[0] + ", no. " + issuer + ", "; 
+				}
+				else if ( issuer.substring(1).equals("p")  )
+				{
+					issuer = parts[index+3].split(",")[0] + ",";
 				}
 				else
 				{
@@ -341,21 +386,61 @@ public class Converter {
 				
 				fora = getPublicationFora(parts[index+2]);
 				
-				if(parts[index+2].split(",").length > 1)
+				String[] issuerArray = parts[index+2].split(",");
+				
+				if(issuerArray.length > 1)
 				{
-					String[] issuerArray = parts[index+2].split(",");
-					issuer = issuerArray[1] + ",";
-					year = parts[index+4] + ", pp. " + parts[index+3].split(",")[0] + ".";
+					if(issuerArray[1].substring(1).equals("v"))
+					{
+						issuer = " vol. " + parts[index+3].split(",")[0] + ", no. " + parts[index+3].split(",")[1] + ", "; 
+					
+						String[] pageYear = parts[index+4].split(",");
+						
+						String page = pageYear[0];
+						
+						// TODO convert brazilian month to US
+						String year_ = pageYear[1];
+						
+						year = year_ + ", pp." + page + ".";	
+					}
+					else
+					{
+						issuer = issuerArray[1] + ",";
+						year = parts[index+4] + ", pp. " + parts[index+3].split(",")[0] + ".";
+					}
 				}
 				else
 				{
 					//get issuer for length == 5
-					String[] issuerArray = parts[index+3].split(",");
+					issuerArray = parts[index+3].split(",");
 					issuer = issuerArray[0] + ",";
 					year = parts[index+4] + ".";
 				}
 				
 				
+			}
+			else if(parts.length == 4)
+			{
+				if(oneAuthor)
+				{
+					author_ = processAuthor(parts[index] + ".");
+				}
+				else
+				{
+					author_ = " and " + processAuthor(parts[index] + ".");
+				}
+				
+				article = getArticleName(parts[index+1]);
+				
+				String[] info = parts[index+2].split(",");
+				
+				fora = getPublicationFora( info[0] );
+				
+				issuer = info[1] + ",";
+				
+				String info_[] = parts[index+3].split(",");
+				
+				year = info_[2] + ", pp." + info_[0] + ".";
 			}
 			else if(parts.length == 3)
 			{

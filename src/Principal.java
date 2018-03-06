@@ -1,3 +1,5 @@
+import java.util.List;
+
 import business.Converter;
 import file.FileUtils;
 
@@ -16,9 +18,9 @@ public class Principal {
 		
 		Converter conv = new Converter();
 		
-		String output = conv.convertABNTtoUS(fileContents);
+		List<String> output = conv.convertABNTtoUS(fileContents);
 		
-		//System.out.println(output));
+		System.out.println(output);
 	}
 
 }

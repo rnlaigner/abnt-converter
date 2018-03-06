@@ -1,14 +1,12 @@
 package business;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.*;
 
 import utils.Utils;
 
-
-
-public class Converter {
-	
-	
+public class Converter {	
 	
 	private String convertAuthorLastName(String name)
 	{	
@@ -16,22 +14,28 @@ public class Converter {
 		return name.substring(0,1).toUpperCase() + name.substring(1).toLowerCase();
 	}
 	
-	public String convertABNTtoUS(String fileContents)
+	public List<String> convertABNTtoUS(String fileContents)
 	{
 		
 		StringBuilder sb = new StringBuilder();
 
 		Pattern p = Pattern.compile("(\\n\\r|\\n|\\r){2}");     
 		/*if your text file has \r\n as the newline character then use Pattern p = Pattern.compile("\\r\\n[\\r\\n]+");*/
-		String[] result = p.split(fileContents);
+		String[] contentSplitted = p.split(fileContents);
 		
-		for(String line : result)
+		List<String> result = new ArrayList<String>();
+		
+		for(String line : contentSplitted)
 		{
 				line = line.replace("\n","");
 			
 				String[] authors = line.split(";");
 				
 				boolean oneAuthor = true;
+				
+				boolean moreThanTwoAuthors;
+				
+				moreThanTwoAuthors = authors.length > 2 ? true : false;
 				
 				for(String author : authors)
 				{
@@ -44,28 +48,26 @@ public class Converter {
 					}
 					else
 					{
-						/*
-						if(author.contains("Zimmermann"))
-						{
-							System.out.println("AQUI");
-						}
-						*/
-						str = processAuthor(author);
+						str = processAuthor(author,moreThanTwoAuthors);
 						oneAuthor = false;
 					}
 					sb.append(str);
 				}
-				sb.append(System.lineSeparator());
-				sb.append(System.lineSeparator());
-				System.out.println();
-				System.out.println(sb.toString());
+				result.add(sb.toString());
+				sb = new StringBuilder();
 		}
 		
-		return sb.toString();
+		return result;
 		
 	}
 	
-	private String processAuthor(String str){
+	private String processAuthor(String str)
+	{
+		return processAuthor(str,true);
+	}
+	
+	private String processAuthor(String str, boolean moreThanTwoAuthors)
+	{
 		
 		StringBuilder sb = new StringBuilder();
 		String parts[] = str.split(",");
@@ -78,7 +80,10 @@ public class Converter {
 			sb.append(parts[1]);
 			sb.append(" ");
 			sb.append(lastName);
-			sb.append(",");
+			if(moreThanTwoAuthors)
+			{
+				sb.append(",");
+			}
 		}
 		catch(Exception e)
 		{
@@ -146,6 +151,8 @@ public class Converter {
 		StringBuilder sb = new StringBuilder();
 		String parts[] = str.split("\\.");
 		
+		String commaAnd = " and ";
+		
 		//tornar generico, enquanto houver autor...
 		
 		if(parts[1].substring(1).length() == 1)
@@ -159,7 +166,8 @@ public class Converter {
 				}
 				else
 				{
-					author_ = ", and " + processAuthor(parts[index] + "." + parts[index+1] + ".");
+					
+					author_ = commaAnd + processAuthor(parts[index] + "." + parts[index+1] + ".");
 				}
 				
 				article = getArticleName(parts[index+2]);
@@ -184,8 +192,7 @@ public class Converter {
 				
 				String page = pageMonth[0];
 				
-				// TODO convert brazilian month to US
-				String month = pageMonth[1];
+				String month = getMonth(pageMonth[1]);
 				
 				year = month + " " + parts[index+6] + ", pp." + page + ".";	
 				
@@ -198,7 +205,7 @@ public class Converter {
 				}
 				else
 				{
-					author_ = ", and " + processAuthor(parts[index] + "." + parts[index+1] + ".");
+					author_ = commaAnd + processAuthor(parts[index] + "." + parts[index+1] + ".");
 				}
 				
 				article = getArticleName(parts[index+2]);
@@ -222,7 +229,7 @@ public class Converter {
 				}
 				else
 				{
-					author_ = ", and " + processAuthor(parts[index] + "." + parts[index+1] + ".");
+					author_ = commaAnd + processAuthor(parts[index] + "." + parts[index+1] + ".");
 				}
 				
 				article = getArticleName(parts[index+2]);
@@ -245,7 +252,7 @@ public class Converter {
 				}
 				else
 				{
-					author_ = ", and " + processAuthor(parts[index] + "." + parts[index+1] + ".");
+					author_ = commaAnd + processAuthor(parts[index] + "." + parts[index+1] + ".");
 				}
 				
 				article = getArticleName(parts[index+2]);
@@ -285,8 +292,7 @@ public class Converter {
 				
 				String page = pageMonth[0];
 				
-				// TODO convert brazilian month to US
-				String month = pageMonth[1];
+				String month = getMonth(pageMonth[1]);
 				
 				year = month + " " + parts[index+5] + ", pp." + page + ".";
 			}
@@ -325,8 +331,7 @@ public class Converter {
 				
 				String page = pageMonth[0];
 				
-				// TODO convert brazilian month to US
-				String month = pageMonth[1];
+				String month = getMonth(pageMonth[1]);
 				
 				year = month + " " + parts[index+6] + ", pp." + page + ".";
 			}
@@ -365,8 +370,7 @@ public class Converter {
 				
 				String page = pageMonth[0];
 				
-				// TODO convert brazilian month to US
-				String month = pageMonth[1];
+				String month = getMonth(pageMonth[1]);
 				
 				year = month + " " + parts[index+5] + ", pp." + page + ".";	
 				
@@ -397,8 +401,7 @@ public class Converter {
 						String[] pageYear = parts[index+4].split(",");
 						
 						String page = pageYear[0];
-						
-						// TODO convert brazilian month to US
+
 						String year_ = pageYear[1];
 						
 						year = year_ + ", pp." + page + ".";	
@@ -440,7 +443,20 @@ public class Converter {
 				
 				String info_[] = parts[index+3].split(",");
 				
-				year = info_[2] + ", pp." + info_[0] + ".";
+				try
+				{
+					if (info_.length > 1){
+						year = info_[2] + ", pp." + info_[0];
+					}
+					else {
+						year = info_[0].substring(1);
+					}
+					year = year + ".";
+				}
+				catch(Exception e)
+				{
+					System.out.println("AQUI!");
+				}
 			}
 			else if(parts.length == 3)
 			{
@@ -508,20 +524,6 @@ public class Converter {
 		return sb.toString();
 	}
 	
-	/*
-	private boolean publicationForaContainsIssuer(String str)
-	{
-		//get issuer for length == 5
-		String[] array = str.split(",");
-		
-		if(array.length > 1)
-		{
-		 return true;
-		}
-		return false;
-	}
-	*/
-	
 	private String getArticleName(String str)
 	{
 		int i = 0;
@@ -531,6 +533,27 @@ public class Converter {
 		}
 
 		return " \"" + str.substring(i) + ",\" ";
+	}
+	
+	private String getMonth(String str)
+	{
+		str = str.replace(" ","");
+		switch (str) {
+			
+			case "jan": return "January"; 
+			case "fev": return "February";
+			case "mar": return "March";
+			case "abr": return "April";
+			case "mai": return "May";
+			case "jun": return "June";
+			case "jul": return "July";
+			case "ago": return "August";
+			case "set": return "September";
+			case "out": return "October";
+			case "nov": return "November";
+			case "dez": return "December";
+			default: return "";
+		}
 	}
 
 }
